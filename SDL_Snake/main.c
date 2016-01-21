@@ -14,17 +14,20 @@
 
 typedef struct
 {
-    int x,y;
     int xPos, yPos;
-    
     unsigned short direction;
-} SnakeHead;
+    
+} SnakeBlock;
 
 typedef struct
 {
     int x,y;
+    int xPos, yPos;
+    int size;
+    SnakeBlock *blocks;
     
-} SnakeBlock;
+    unsigned short direction;
+} SnakeHead;
 
 typedef struct
 {
@@ -43,8 +46,13 @@ void renderSnake(SDL_Renderer *gfx, SnakeHead *snake);
 int main(int argc, const char * argv[]) {
     bool is_runnung = true;
     SnakeHead snake;
-    snake.xPos = 25;
-    snake.yPos = 25;
+    snake.xPos = 10;
+    snake.yPos = 9;
+    snake.size = 3;
+    snake.direction = UP;
+    
+    SnakeBlock blocks[50] = {{10, snake.yPos+1, UP}, {10, snake.yPos+2, UP}, {10, snake.yPos+3, UP}};
+    snake.blocks = blocks;
     
     SDL_Init(SDL_INIT_VIDEO);
     
@@ -57,6 +65,7 @@ int main(int argc, const char * argv[]) {
     
     while (is_runnung) {
         is_runnung = processEvents(window, &snake);
+        update(&snake);
         
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
@@ -67,7 +76,7 @@ int main(int argc, const char * argv[]) {
         
         SDL_RenderPresent(renderer);
         
-        SDL_Delay(500);
+        SDL_Delay(300);
     }
     
     // Shutdown
@@ -116,6 +125,8 @@ bool processEvents(SDL_Window *window, SnakeHead *snake)
                 is_running = false;
                 break;
         }
+        
+        
     }
     
     return is_running;
@@ -123,6 +134,35 @@ bool processEvents(SDL_Window *window, SnakeHead *snake)
 
 void update(SnakeHead *snake)
 {
+    snake->blocks[0].xPos = snake->xPos;
+    snake->blocks[0].yPos = snake->yPos;
+    snake->blocks[0].direction = snake->direction;
+    
+    for (int i = 1; i < snake->size; i++) {
+        snake->blocks[i].direction = snake->blocks[i-1].direction;
+        
+        snake->blocks[i].xPos = snake->blocks[i-1].xPos;
+        snake->blocks[i].yPos = snake->blocks[i-1].yPos;
+        
+        switch (snake->blocks[i].direction) {
+            case UP:
+                snake->blocks[i].yPos += 1;
+                break;
+            case DOWN:
+                snake->blocks[i].yPos -= 1;
+                break;
+            case LEFT:
+                snake->blocks[i].xPos += 1;
+                break;
+            case RIGHT:
+                snake->blocks[i].xPos -= 1;
+                break;
+            default:
+                break;
+        }
+
+    }
+
     switch (snake->direction) {
         case UP:
             snake->yPos -= 1;
@@ -139,6 +179,7 @@ void update(SnakeHead *snake)
         default:
             break;
     }
+    
 }
 
 void renderField(SDL_Renderer *gfx)
@@ -163,7 +204,16 @@ void renderField(SDL_Renderer *gfx)
 
 void renderSnake(SDL_Renderer *gfx, SnakeHead *snake)
 {
-    SDL_Rect rect = {0, 0, TILE_H, TILE_W};
-    SDL_SetRenderDrawColor(gfx, 128, 128, 128, 128);
+    snake->x = snake->xPos * TILE_W;
+    snake->y = snake->yPos * TILE_H;
+    SDL_Rect rect = {snake->x, snake->y, TILE_H, TILE_W};
+    SDL_SetRenderDrawColor(gfx, 200, 0, 0, 255);
+    SDL_RenderFillRect(gfx, &rect);
     
+    SDL_SetRenderDrawColor(gfx, 255, 255, 255, 255);
+    for (int i = 0; i < snake->size; i++) {
+        rect.x = snake->blocks[i].xPos * TILE_W;
+        rect.y = snake->blocks[i].yPos * TILE_H;
+        SDL_RenderFillRect(gfx, &rect);
+    }
 }
