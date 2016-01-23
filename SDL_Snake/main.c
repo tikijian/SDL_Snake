@@ -15,9 +15,11 @@
 typedef struct
 {
     int xPos, yPos;
-    unsigned short direction;
     
-} SnakeBlock;
+} Block;
+
+typedef Block SnakeBlock;
+typedef Block Bait;
 
 typedef struct
 {
@@ -28,70 +30,6 @@ typedef struct
     
     unsigned short direction;
 } SnakeHead;
-
-typedef struct
-{
-    int x,y;
-} Bait;
-
-unsigned char field[100] = {0};
-
-bool processEvents(SDL_Window *window, SnakeHead *snake);
-void render(SDL_Renderer *gfx, SnakeHead *snake);
-void initGame();
-void update(SnakeHead *snake);
-void renderField(SDL_Renderer *gfx);
-void renderSnake(SDL_Renderer *gfx, SnakeHead *snake);
-void updateFromTail(SnakeHead *snake);
-
-int main(int argc, const char * argv[]) {
-    bool is_running = true;
-    SnakeHead snake;
-    snake.xPos = 10;
-    snake.yPos = 9;
-    snake.size = 4;
-    snake.direction = UP;
-    
-    SnakeBlock blocks[50] = {
-        {10, snake.yPos+1, UP},
-        {10, snake.yPos+2, UP},
-        {10, snake.yPos+3, UP},
-        {10, snake.yPos+4, UP}
-    };
-    snake.blocks = blocks;
-    
-    SDL_Init(SDL_INIT_VIDEO);
-    
-    SDL_Window *window = NULL;
-    SDL_Renderer *renderer = NULL;
-    
-    window = SDL_CreateWindow("My SDL Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    
-    
-    while (is_running) {
-        is_running = processEvents(window, &snake);
-        update(&snake);
-        
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
-        
-        // Render
-        renderField(renderer);
-        renderSnake(renderer, &snake);
-        
-        SDL_RenderPresent(renderer);
-        
-        SDL_Delay(300);
-    }
-    
-    // Shutdown
-
-    SDL_DestroyRenderer(renderer);
-    
-    SDL_Quit();
-    return 0;
-}
 
 bool processEvents(SDL_Window *window, SnakeHead *snake)
 {
@@ -147,7 +85,6 @@ void update(SnakeHead *snake)
     
     snake->blocks[0].xPos = snake->xPos;
     snake->blocks[0].yPos = snake->yPos;
-    snake->blocks[0].direction = snake->direction;
     
     switch (snake->direction) {
         case UP:
@@ -201,4 +138,53 @@ void renderSnake(SDL_Renderer *gfx, SnakeHead *snake)
         rect.y = snake->blocks[i].yPos * TILE_H;
         SDL_RenderFillRect(gfx, &rect);
     }
+}
+
+int main(int argc, const char * argv[]) {
+    bool is_running = true;
+    SnakeHead snake;
+    snake.xPos = 10;
+    snake.yPos = 9;
+    snake.size = 4;
+    snake.direction = UP;
+    
+    SnakeBlock blocks[50] = {
+        {10, snake.yPos+1},
+        {10, snake.yPos+2},
+        {10, snake.yPos+3},
+        {10, snake.yPos+4}
+    };
+    snake.blocks = blocks;
+    
+    SDL_Init(SDL_INIT_VIDEO);
+    
+    SDL_Window *window = NULL;
+    SDL_Renderer *renderer = NULL;
+    
+    window = SDL_CreateWindow("My SDL Game", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    
+    
+    while (is_running) {
+        is_running = processEvents(window, &snake);
+        update(&snake);
+        
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+        SDL_RenderClear(renderer);
+        
+        // Render
+        renderField(renderer);
+        renderSnake(renderer, &snake);
+        
+        SDL_RenderPresent(renderer);
+        
+        SDL_Delay(300);
+    }
+    
+    // Shutdown
+    
+    SDL_DestroyRenderer(renderer);
+    
+    SDL_Quit();
+    return 0;
 }
