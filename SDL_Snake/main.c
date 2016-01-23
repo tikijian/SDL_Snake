@@ -42,16 +42,22 @@ void initGame();
 void update(SnakeHead *snake);
 void renderField(SDL_Renderer *gfx);
 void renderSnake(SDL_Renderer *gfx, SnakeHead *snake);
+void updateFromTail(SnakeHead *snake);
 
 int main(int argc, const char * argv[]) {
-    bool is_runnung = true;
+    bool is_running = true;
     SnakeHead snake;
     snake.xPos = 10;
     snake.yPos = 9;
-    snake.size = 3;
+    snake.size = 4;
     snake.direction = UP;
     
-    SnakeBlock blocks[50] = {{10, snake.yPos+1, UP}, {10, snake.yPos+2, UP}, {10, snake.yPos+3, UP}};
+    SnakeBlock blocks[50] = {
+        {10, snake.yPos+1, UP},
+        {10, snake.yPos+2, UP},
+        {10, snake.yPos+3, UP},
+        {10, snake.yPos+4, UP}
+    };
     snake.blocks = blocks;
     
     SDL_Init(SDL_INIT_VIDEO);
@@ -63,8 +69,8 @@ int main(int argc, const char * argv[]) {
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     
     
-    while (is_runnung) {
-        is_runnung = processEvents(window, &snake);
+    while (is_running) {
+        is_running = processEvents(window, &snake);
         update(&snake);
         
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -134,35 +140,15 @@ bool processEvents(SDL_Window *window, SnakeHead *snake)
 
 void update(SnakeHead *snake)
 {
+    for (int i = snake->size - 1; i >= 1; i--) {
+        snake->blocks[i].xPos = snake->blocks[i-1].xPos;
+        snake->blocks[i].yPos = snake->blocks[i-1].yPos;
+    }
+    
     snake->blocks[0].xPos = snake->xPos;
     snake->blocks[0].yPos = snake->yPos;
     snake->blocks[0].direction = snake->direction;
     
-    for (int i = 1; i < snake->size; i++) {
-        snake->blocks[i].direction = snake->blocks[i-1].direction;
-        
-        snake->blocks[i].xPos = snake->blocks[i-1].xPos;
-        snake->blocks[i].yPos = snake->blocks[i-1].yPos;
-        
-        switch (snake->blocks[i].direction) {
-            case UP:
-                snake->blocks[i].yPos += 1;
-                break;
-            case DOWN:
-                snake->blocks[i].yPos -= 1;
-                break;
-            case LEFT:
-                snake->blocks[i].xPos += 1;
-                break;
-            case RIGHT:
-                snake->blocks[i].xPos -= 1;
-                break;
-            default:
-                break;
-        }
-
-    }
-
     switch (snake->direction) {
         case UP:
             snake->yPos -= 1;
@@ -179,7 +165,6 @@ void update(SnakeHead *snake)
         default:
             break;
     }
-    
 }
 
 void renderField(SDL_Renderer *gfx)
